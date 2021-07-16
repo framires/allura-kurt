@@ -64,10 +64,10 @@ export function CreateProfiles(props) {
               ( 
                 listItem.map((itemAtual, index) => {
                   return (
-                    <li id={`Comunidade${index}`} key={index}>
-                      <a href={`/users/${itemAtual}`}>
-                        <img src={`https://github.com/${itemAtual}.png`} />
-                        <span>{itemAtual}</span>
+                    <li key={itemAtual.id}>
+                      <a href={`/users/${itemAtual.creatorSlug}`}>
+                        <img src={itemAtual.image}/>
+                        <span>{itemAtual.title}</span>
                       </a>
                     </li>
                   );

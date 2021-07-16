@@ -37,7 +37,10 @@ export default function Home() {
   const [comunidades, setComunidades] = React.useState([]);
   const usuarioAleatorio = "framires";
   const pessoasFavoritas = [
-    { name: "lucasgomesoficial",image: "https://github.com/lucasgomesoficial.png"},
+    {
+      name: "lucasgomesoficial",
+      image: "https://github.com/lucasgomesoficial.png",
+    },
     { name: "felipeFramires", image: "https://github.com/felipeFramires.png" },
     { name: "marvini-ml", image: "https://github.com/marvini-ml.png" },
     { name: "jupereira97", image: "https://github.com/jupereira97.png" },
@@ -48,15 +51,47 @@ export default function Home() {
   const [seguidores, setSeguidores] = React.useState([]);
 
   React.useEffect(function () {
+    //get followers
     fetch("https://api.github.com/users/framires/followers")
       .then(function (respostaServidor) {
         return respostaServidor.json();
       })
       .then(function (jsonConvertido) {
-        let remap = jsonConvertido.map( x => {
-          return { name: x.login,image: x.avatar_url}
+        let remap = jsonConvertido.map((x) => {
+          return { name: x.login, image: x.avatar_url };
         });
         setSeguidores(remap);
+      });
+
+    //post Comunities
+    fetch("https://graphql.datocms.com/", {
+      method: "POST",
+      headers: {
+        Authorization: "1a40e4e9790654d535507e03150593",
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        query: `
+          query {
+            allCommunities {
+              id
+              title
+              image
+              creatorSlug
+              _status
+              _firstPublishedAt
+            }
+            _allCommunitiesMeta {
+              count
+            }
+          }`,
+      }),
+    })
+      .then((response) => response.json())
+      .then((responseComplete) => {
+        let comunitiesResponse = responseComplete.data.allCommunities;
+        setComunidades(comunitiesResponse);
       });
   }, []);
 
@@ -82,7 +117,19 @@ export default function Home() {
                   name: dadosForm.get("title"),
                   image: dadosForm.get("image"),
                 };
-                setComunidades([...comunidades, comunidadeObject]);
+
+                fetch("api/comunidade", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                  },
+                  body: JSON.stringify(comunidadeObject),
+                }).then( async(saveResponse) =>{
+                   const saveObject = await saveResponse.json(); 
+                   const comunidadeAtualizadas = [...comunidades,saveObject];
+                   setComunidades(comunidadeAtualizadas);
+                })
               }}
             >
               <div>
@@ -120,7 +167,7 @@ export default function Home() {
             <CreateProfiles
               listItem={comunidades}
               title={`Minhas Comunidades`}
-              gitImgDefault={false}
+              gitImgDefault={true}
             />
           </ProfileRelationsBoxWrapper>
           <ProfileRelationsBoxWrapper>
